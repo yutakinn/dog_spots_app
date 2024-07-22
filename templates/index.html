@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="mb-4">犬とのお出かけスポット一覧</h1>
+    <div class="row">
+        {% for spot in spots %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ spot.name }}</h5>
+                        <p class="card-text">{{ spot.description }}</p>
+                        <p class="card-text"><strong>住所:</strong> {{ spot.address }}</p>
+                        <p class="card-text"><strong>ドッグフレンドリー度:</strong> {{ "🐾" * spot.dog_friendly_rating }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
