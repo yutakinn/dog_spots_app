@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -57,12 +58,18 @@ def admin_add_spot():
         return redirect(url_for('index'))
     return render_template('admin/add_spot.html', form=form)
 
-if __name__ == '__main__':
+def create_tables():
     with app.app_context():
+        db_dir = os.path.dirname(app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///',''))
+        os.makedirs(db_dir, exist_ok=True)
         db.create_all()
-        # 初期管理者ユーザーの作成（実際の運用では安全なパスワード管理を行ってください）
         if not User.query.filter_by(username='admin').first():
-            admin_user = User(username='admin', password_hash=generate_password_hash('password'))
+            admin_user = User(username='admin', password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'default_password')))
             db.session.add(admin_user)
             db.session.commit()
-    app.run(debug=True)
+
+# アプリケーション初期化時にテーブルを作成
+create_tables()
+
+if __name__ == '__main__':
+    app.run(debug=False)
