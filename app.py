@@ -9,6 +9,13 @@ from config import Config
 app = Flask(__name__)
 app.config.from_object(Config)
 
+# データベースのパスを環境変数から取得
+db_path = os.environ.get('DATABASE_URL')
+if db_path.startswith("sqlite:///"):
+    db_dir = os.path.dirname(db_path.replace("sqlite:///", ""))
+    os.makedirs(db_dir, exist_ok=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_path
+
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -60,11 +67,10 @@ def admin_add_spot():
 
 def create_tables():
     with app.app_context():
-        db_dir = os.path.dirname(app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///',''))
-        os.makedirs(db_dir, exist_ok=True)
         db.create_all()
         if not User.query.filter_by(username='admin').first():
-            admin_user = User(username='admin', password_hash=generate_password_hash(os.environ.get('ADMIN_PASSWORD', 'default_password')))
+            admin_password = os.environ.get('ADMIN_PASSWORD', 'default_password')
+            admin_user = User(username='admin', password_hash=generate_password_hash(admin_password))
             db.session.add(admin_user)
             db.session.commit()
 
